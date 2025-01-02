@@ -104,11 +104,14 @@ func PrintProjectsSlice(projects []Project) string {
 	return display_string
 }
 
+// PrintCompressedProjectsSlice prints a compressed version of the projects slice
+// with only the ID, Name, and Path of each project.
+// Starts with "Projects:\n"
 func PrintCompressedProjectsSlice(projects []Project) string {
-	var display_string string = "Projects:\n"
+	var display_string string
 
 	for _, project := range projects {
-		display_string += fmt.Sprintf("  ID: %d, Name: %s, Path: %s\n", project.ID, project.Name, project.Path)
+		display_string += fmt.Sprintf("ID: %d, Name: %s, Path: %s\n", project.ID, project.Name, project.Path)
 	}
 
 	return display_string
