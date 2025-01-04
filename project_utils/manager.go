@@ -44,9 +44,6 @@ func SaveProjects(projects *[]Project) {
 		return
 	}
 
-	fmt.Println(string(projectsJSON))
-	fmt.Println(projects)
-
 	err = os.WriteFile(".projects.json", projectsJSON, 0644)
 	if err != nil {
 		log.Println(err)

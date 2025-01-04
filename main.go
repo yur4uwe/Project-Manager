@@ -84,11 +84,11 @@ func main() {
 		case MAIN_MENU:
 			buffer = DisplayMainMenu(projects, key, selected)
 		case ADD_PROJECT:
-			DisplayAddProject(projects)
+			projects = DisplayAddProject(projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case UPDATE_PROJECT:
-			DisplayUpdateProject(projects)
+			projects = DisplayUpdateProject(projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case REMOVE_PROJECT:
@@ -144,7 +144,7 @@ func DisplayProjectsList(projects []project.Project) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if key == keyboard.KeyEnter {
+		if key == keyboard.KeyEnter || key == keyboard.KeyEsc {
 			break
 		}
 	}
@@ -175,23 +175,49 @@ func DisplayRemoveProject(projects []project.Project) []project.Project {
 	return projects
 }
 
-func DisplayUpdateProject(projects []project.Project) {
+func DisplayUpdateProject(projects []project.Project) []project.Project {
 	var selected = PrintCompressedProjectList(projects)
 
 	if selected < 0 || selected >= len(projects) {
-		return
+		return projects
 	}
 
 	fmt.Println(project.PrintProjectInfo(projects[selected]))
+
+	return projects
 }
 
-func DisplayAddProject(projects []project.Project) {
-	panic("unimplemented")
+func DisplayAddProject(projects []project.Project) []project.Project {
+	fmt.Println("Add Project")
+
+	fmt.Print("Name: ")
+	var name string
+	fmt.Scanln(&name)
+
+	fmt.Print("Description: ")
+	var description string
+	fmt.Scanln(&description)
+
+	fmt.Print("Path: ")
+	var path string
+	fmt.Scanln(&path)
+
+	project.AddProject(&projects, name, description, path)
+
+	return projects
 }
 
 func PrintCompressedProjectList(projects []project.Project) int {
 	var projects_slice = strings.Split(project.PrintCompressedProjectsSlice(projects), "\n")[:len(projects)]
-	var display_string string = "Projects:\n  " + strings.Join(projects_slice, "\n  ")
+
+	var joined string
+	if len(projects_slice) == 0 {
+		joined = ""
+	} else {
+		joined = "\n  " + strings.Join(projects_slice, "\n  ")
+	}
+
+	var display_string string = "Projects:  " + joined
 	var selected = 0
 
 	fmt.Println(display_string)
@@ -208,10 +234,10 @@ func PrintCompressedProjectList(projects []project.Project) int {
 			log.Fatal(err)
 		}
 
-		if key == keyboard.KeyArrowDown {
+		if key == keyboard.KeyArrowDown && len(projects_slice) > 0 {
 			selected = (selected + 1) % len(projects_slice)
 			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyArrowUp {
+		} else if key == keyboard.KeyArrowUp && len(projects_slice) > 0 {
 			selected = (selected - 1 + len(projects_slice)) % len(projects_slice)
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		} else if key == keyboard.KeyEsc {
@@ -229,7 +255,8 @@ func PrintCompressedProjectList(projects []project.Project) int {
 		}
 
 		if len(projects_slice) == 0 {
-			display_string += "  No projects found."
+			display_string = "Projects:\n" + "  No projects found."
+			fmt.Print("\033[H\033[2J") // Clear the screen
 		}
 
 		fmt.Println(display_string)
