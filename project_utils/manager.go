@@ -1,73 +1,53 @@
 package project
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
-
-	"github.com/yur4uwe/cmd-project-manager/parse_json"
 )
 
 type Project struct {
-	ID          int
-	Name        string
-	Description string
-	Path        string
-	TimeStamp   string
+	ID          int    `json:"ID"`
+	Name        string `json:"Name"`
+	Description string `json:"Description"`
+	Path        string `json:"Path"`
+	TimeStamp   string `json:"TimeStamp"`
 }
 
 func ReadProjectsFromFile() []Project {
 	fmt.Println("Read Projects From File")
 
 	file, err := os.ReadFile(".projects.json")
-
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
 
-	projectsJSON := string(file)
-	projects := []Project{}
-
-	// fmt.Println("Projects on json:", projectsJSON)
-
-	for i := 0; i < len(projectsJSON); i++ {
-		if projectsJSON[i] == '{' {
-			var j int = i + 1
-			for projectsJSON[j] != '}' {
-				j++
-			}
-
-			var projectJSON = projectsJSON[i : j+1]
-			var projectAsJsonMap = parse_json.Parse(projectJSON)
-			var project = CastJSONToProject(projectAsJsonMap)
-			projects = append(projects, project)
-
-			i = j + 1
-		}
+	var projects []Project
+	err = json.Unmarshal(file, &projects)
+	if err != nil {
+		log.Println(err)
+		return nil
 	}
 
 	return projects
 }
 
-func SaveProjects(projects []Project) {
+func SaveProjects(projects *[]Project) {
 	fmt.Println("Save Projects")
 
-	projectsJSON := "["
-
-	for i, project := range projects {
-		projectsJSON += fmt.Sprintf(`{"ID": %d, "Name": "%s", "Description": "%s", "Path": "%s", "TimeStamp": "%s"}`, project.ID, project.Name, project.Description, project.Path, project.TimeStamp)
-		if i != len(projects)-1 {
-			projectsJSON += ","
-		}
+	projectsJSON, err := json.MarshalIndent(projects, "", "  ")
+	if err != nil {
+		log.Println(err)
+		return
 	}
 
-	projectsJSON += "]"
+	fmt.Println(string(projectsJSON))
+	fmt.Println(projects)
 
-	err := os.WriteFile(".projects.json", []byte(projectsJSON), 0644)
-
+	err = os.WriteFile(".projects.json", projectsJSON, 0644)
 	if err != nil {
 		log.Println(err)
 	}
@@ -88,7 +68,7 @@ func AddProject(prjs *[]Project, name, description, path string) Project {
 
 	*prjs = append(projects, prj)
 
-	SaveProjects(*prjs)
+	SaveProjects(prjs)
 
 	return prj
 }
@@ -157,38 +137,4 @@ func UpdateProject(projects []Project, id int, name, description, path string) [
 	}
 
 	return projects
-}
-
-func CastJSONToProject(json map[string]string) Project {
-	var id int
-	var err error
-	var name, description, path, timestamp string
-
-	for key, value := range json {
-		switch key {
-		case "ID":
-			id, err = strconv.Atoi(value)
-		case "Name":
-			name = value
-		case "Description":
-			description = value
-		case "Path":
-			path = value
-		case "TimeStamp":
-			timestamp = value
-		}
-	}
-
-	if err != nil {
-		log.Println(err)
-		return Project{}
-	}
-
-	return Project{
-		ID:          id,
-		Name:        name,
-		Description: description,
-		Path:        path,
-		TimeStamp:   timestamp,
-	}
 }

@@ -25,7 +25,7 @@ func main() {
 	}
 	defer keyboard.Close()
 
-	defer project.SaveProjects(projects)
+	defer project.SaveProjects(&projects)
 
 	options := []string{
 		"Add Project",
@@ -196,6 +196,10 @@ func PrintCompressedProjectList(projects []project.Project) int {
 
 	fmt.Println(display_string)
 
+	if len(projects_slice) == 0 {
+		fmt.Println("  No projects found.")
+	}
+
 	for {
 		display_string = "Projects:\n"
 
@@ -222,6 +226,10 @@ func PrintCompressedProjectList(projects []project.Project) int {
 			} else {
 				display_string += fmt.Sprintf("  %s\n", compressed_project_info)
 			}
+		}
+
+		if len(projects_slice) == 0 {
+			display_string += "  No projects found."
 		}
 
 		fmt.Println(display_string)
