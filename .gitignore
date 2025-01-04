@@ -27,5 +27,5 @@ go.sum
 # Ignore the .env file
 .env
 
-# Ignore json file with project information
-.projects.json
+# Ignore json files with project information
+*.json
