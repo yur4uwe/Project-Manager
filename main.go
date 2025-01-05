@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/eiannone/keyboard"
+	display "github.com/yur4uwe/cmd-project-manager/display"
 	project "github.com/yur4uwe/cmd-project-manager/project_utils"
 )
 
@@ -38,7 +39,7 @@ func main() {
 
 	var window_to_display int = MAIN_MENU
 
-	var buffer = DisplayMainMenu(projects, keyboard.KeyBackspace, selected)
+	var buffer = display.MainMenu(projects, keyboard.KeyBackspace, selected)
 
 	fmt.Println(buffer)
 
@@ -48,7 +49,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		buffer = DisplayMainMenu(projects, key, selected)
+		buffer = display.MainMenu(projects, key, selected)
 
 		if key == keyboard.KeyArrowDown && window_to_display == MAIN_MENU {
 			selected = (selected + 1) % len(options)
@@ -81,25 +82,25 @@ func main() {
 
 		switch window_to_display {
 		case MAIN_MENU:
-			buffer = DisplayMainMenu(projects, key, selected)
+			buffer = display.MainMenu(projects, key, selected)
 		case ADD_PROJECT:
-			DisplayAddProject(&projects)
+			display.AddProject(&projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case UPDATE_PROJECT:
-			projects = DisplayUpdateProject(projects)
+			projects = display.UpdateProject(projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case REMOVE_PROJECT:
-			projects = DisplayRemoveProject(projects)
+			projects = display.RemoveProject(projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case LIST_PROJECTS:
-			DisplayProjectsList(projects)
+			display.ProjectsList(projects)
 			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		default:
-			buffer = DisplayMainMenu(projects, key, selected)
+			buffer = display.MainMenu(projects, key, selected)
 		}
 
 		fmt.Println(buffer)

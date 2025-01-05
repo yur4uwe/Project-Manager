@@ -1,10 +1,12 @@
-package main
+package display
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"regexp"
+
+	// "regexp"
 	"strings"
 
 	"github.com/eiannone/keyboard"
@@ -68,19 +70,19 @@ func PrintCompressedProjectList(projects []project.Project) int {
 }
 
 func isValidPath(path string) bool {
-	// Define regex for Windows paths
-	windowsPathPattern := `^[a-zA-Z]:\\(?:[^\\/:*?"<>|\r\n]+\\)*[^\\/:*?"<>|\r\n]*$`
-	// Define regex for Unix-like paths
-	unixPathPattern := `^(/[^/ ]*)+/?$`
+	// // Define regex for Windows paths
+	// windowsPathPattern := `^[a-zA-Z]:\\(?:[^\\/:*?"<>|\r\n]+\\)*[^\\/:*?"<>|\r\n]*$`
+	// // Define regex for Unix-like paths
+	// unixPathPattern := `^(/[^/ ]*)+/?$`
 
-	// Compile the regex patterns
-	windowsPathRegex := regexp.MustCompile(windowsPathPattern)
-	unixPathRegex := regexp.MustCompile(unixPathPattern)
+	// // Compile the regex patterns
+	// windowsPathRegex := regexp.MustCompile(windowsPathPattern)
+	// unixPathRegex := regexp.MustCompile(unixPathPattern)
 
-	// Check if the path matches either pattern
-	if !windowsPathRegex.MatchString(path) && !unixPathRegex.MatchString(path) {
-		return false
-	}
+	// // Check if the path matches either pattern
+	// if !windowsPathRegex.MatchString(path) && !unixPathRegex.MatchString(path) {
+	// 	return false
+	// }
 
 	// Check if the path exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -88,4 +90,34 @@ func isValidPath(path string) bool {
 	}
 
 	return true
+}
+
+func GetMostRecentPaths() []string {
+
+	// Get the most recent paths from the .directory_history.json file
+	// and return them as a slice of strings
+	// If the file does not exist, return an empty slice
+	// If the file exists but is empty, return an empty slice
+	// If the file exists and contains paths, return them as a slice of strings
+
+	// Read the file
+	file, err := os.ReadFile(".directory_history.json")
+	if err != nil {
+		log.Println(err)
+		return []string{}
+	}
+
+	// Unmarshal the file
+	var paths []string
+	err = json.Unmarshal(file, &paths)
+	if err != nil {
+		log.Println(err)
+		return []string{}
+	}
+
+	// Return the 5 most recent paths
+	if len(paths) > 5 {
+		return paths[:5]
+	}
+	return paths
 }

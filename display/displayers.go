@@ -1,4 +1,4 @@
-package main
+package display
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	project "github.com/yur4uwe/cmd-project-manager/project_utils"
 )
 
-func DisplayMainMenu(projects []project.Project, key keyboard.Key, selected int) string {
+func MainMenu(projects []project.Project, key keyboard.Key, selected int) string {
 	var display_string string = "Main Menu\n"
 
 	options := []string{
@@ -33,7 +33,7 @@ func DisplayMainMenu(projects []project.Project, key keyboard.Key, selected int)
 	return display_string
 }
 
-func DisplayProjectsList(projects []project.Project) {
+func ProjectsList(projects []project.Project) {
 	var selected = PrintCompressedProjectList(projects)
 
 	if selected < 0 || selected >= len(projects) {
@@ -54,7 +54,7 @@ func DisplayProjectsList(projects []project.Project) {
 	}
 }
 
-func DisplayRemoveProject(projects []project.Project) []project.Project {
+func RemoveProject(projects []project.Project) []project.Project {
 	var selected = PrintCompressedProjectList(projects)
 
 	if selected < 0 || selected >= len(projects) {
@@ -79,7 +79,7 @@ func DisplayRemoveProject(projects []project.Project) []project.Project {
 	return projects
 }
 
-func DisplayUpdateProject(projects []project.Project) []project.Project {
+func UpdateProject(projects []project.Project) []project.Project {
 	var selected = PrintCompressedProjectList(projects)
 
 	if selected < 0 || selected >= len(projects) {
@@ -91,7 +91,7 @@ func DisplayUpdateProject(projects []project.Project) []project.Project {
 	return projects
 }
 
-func DisplayAddProject(projects *[]project.Project) {
+func AddProject(projects *[]project.Project) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Add Project")
@@ -104,19 +104,60 @@ func DisplayAddProject(projects *[]project.Project) {
 	description, _ := reader.ReadString('\n')
 	description = strings.TrimSpace(description)
 
-	var path string
+	var recent_path_options = GetMostRecentPaths()
+
+	var path_options = len(recent_path_options) + 1
+	var selected = -1
+	var path string = ""
 	for {
 		fmt.Println("Enter the absolute path to the project directory or choose already existing.")
-		fmt.Println("  Use current directory")
-		fmt.Print("Absolute Path: ")
-		path, _ = reader.ReadString('\n')
-		path = strings.TrimSpace(path)
 
-		if isValidPath(path) {
-			break
-		} else {
-			fmt.Println("Invalid path. Please enter a valid filesystem path.")
+		if selected == 0 {
+			fmt.Println("> Use current directory <")
 		}
+
+		for i, option := range recent_path_options {
+			if i == selected {
+				fmt.Printf("> %s <\n", option)
+			} else {
+				fmt.Printf("  %s\n", option)
+			}
+		}
+
+		fmt.Println(strings.Join(recent_path_options, "\n  "))
+		fmt.Printf("Absolute Path: %s\n", path)
+
+		char, key, err := keyboard.GetKey()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if key == keyboard.KeyEnter {
+			if isValidPath(path) {
+				break
+			}
+			fmt.Print("\033[H\033[2J") // Clear the screen
+			fmt.Println("Invalid path. Please enter a valid filesystem path.")
+			path = ""
+		} else if key == keyboard.KeyEsc {
+			return
+		} else if key == keyboard.KeyBackspace {
+			if len(path) > 0 {
+				path = path[:len(path)-1]
+			}
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyArrowUp {
+			selected = (selected - 1 + path_options) % path_options
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyArrowDown {
+			selected = (selected + 1) % path_options
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else {
+			path += string(char)
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		}
+
 	}
 
 	project.AddProject(projects, name, description, path)
