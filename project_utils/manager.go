@@ -50,24 +50,22 @@ func SaveProjects(projects *[]Project) {
 	}
 }
 
-func AddProject(prjs *[]Project, name, description, path string) Project {
+func AddProject(projects *[]Project, name, description, path string) Project {
 	fmt.Println("Add Project")
 
-	projects := *prjs
-
-	prj := Project{
+	new_project := Project{
 		Name:        name,
 		Description: description,
 		Path:        path,
 		TimeStamp:   time.Now().Format(time.RFC3339),
-		ID:          len(projects),
+		ID:          len(*projects),
 	}
 
-	*prjs = append(projects, prj)
+	*projects = append(*projects, new_project)
 
-	SaveProjects(prjs)
+	SaveProjects(projects)
 
-	return prj
+	return new_project
 }
 
 func PrintProjectsSlice(projects []Project) string {
@@ -108,6 +106,8 @@ func RemoveProject(projects []Project, id int) []Project {
 		if project.ID == id {
 			projects = append(projects[:i], projects[i+1:]...)
 			break
+		} else if project.ID > id {
+			projects[i].ID--
 		}
 	}
 

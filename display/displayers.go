@@ -11,7 +11,8 @@ import (
 	project "github.com/yur4uwe/cmd-project-manager/project_utils"
 )
 
-func MainMenu(projects []project.Project, key keyboard.Key, selected int) string {
+// (int) Returns the index of the selected option
+func MainMenu() int {
 	var display_string string = "Main Menu\n"
 
 	options := []string{
@@ -22,17 +23,10 @@ func MainMenu(projects []project.Project, key keyboard.Key, selected int) string
 		"Exit",
 	}
 
-	for i, option := range options {
-		if i == selected {
-			display_string += fmt.Sprintf("> %s <\n", option)
-		} else {
-			display_string += fmt.Sprintf("  %s\n", option)
-		}
-	}
-
-	return display_string
+	return ChoiceMenu(options, display_string, "", "Q", "q")
 }
 
+// (void) Lists Projects
 func ProjectsList(projects []project.Project) {
 	var selected = PrintCompressedProjectList(projects)
 
@@ -54,6 +48,7 @@ func ProjectsList(projects []project.Project) {
 	}
 }
 
+// Returns mutated projects slice
 func RemoveProject(projects []project.Project) []project.Project {
 	var selected = PrintCompressedProjectList(projects)
 
@@ -79,6 +74,7 @@ func RemoveProject(projects []project.Project) []project.Project {
 	return projects
 }
 
+// Returns mutated projects slice
 func UpdateProject(projects []project.Project) []project.Project {
 	var selected = PrintCompressedProjectList(projects)
 
@@ -88,9 +84,30 @@ func UpdateProject(projects []project.Project) []project.Project {
 
 	fmt.Println(project.PrintProjectInfo(projects[selected]))
 
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Update Project fields(leave empty to keep current value):")
+
+	fmt.Printf("Old Name: %s\n", projects[selected].Name)
+	fmt.Print("Name: ")
+	name, _ := reader.ReadString('\n')
+	if strings.TrimSpace(name) != "" {
+		name = strings.TrimSpace(name)
+		projects[selected].Name = name
+	}
+
+	fmt.Printf("Old Description: %s\n", projects[selected].Description)
+	fmt.Print("Description: ")
+	description, _ := reader.ReadString('\n')
+	if strings.TrimSpace(description) != "" {
+		description = strings.TrimSpace(description)
+		projects[selected].Description = description
+	}
+
 	return projects
 }
 
+// (void) Mutates the projects slice
 func AddProject(projects *[]project.Project) {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -104,61 +121,12 @@ func AddProject(projects *[]project.Project) {
 	description, _ := reader.ReadString('\n')
 	description = strings.TrimSpace(description)
 
-	var recent_path_options = GetMostRecentPaths()
-
-	var path_options = len(recent_path_options) + 1
-	var selected = -1
-	var path string = ""
-	for {
-		fmt.Println("Enter the absolute path to the project directory or choose already existing.")
-
-		if selected == 0 {
-			fmt.Println("> Use current directory <")
-		}
-
-		for i, option := range recent_path_options {
-			if i == selected {
-				fmt.Printf("> %s <\n", option)
-			} else {
-				fmt.Printf("  %s\n", option)
-			}
-		}
-
-		fmt.Println(strings.Join(recent_path_options, "\n  "))
-		fmt.Printf("Absolute Path: %s\n", path)
-
-		char, key, err := keyboard.GetKey()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if key == keyboard.KeyEnter {
-			if isValidPath(path) {
-				break
-			}
-			fmt.Print("\033[H\033[2J") // Clear the screen
-			fmt.Println("Invalid path. Please enter a valid filesystem path.")
-			path = ""
-		} else if key == keyboard.KeyEsc {
-			return
-		} else if key == keyboard.KeyBackspace {
-			if len(path) > 0 {
-				path = path[:len(path)-1]
-			}
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyArrowUp {
-			selected = (selected - 1 + path_options) % path_options
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyArrowDown {
-			selected = (selected + 1) % path_options
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else {
-			path += string(char)
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		}
-
+	path, err := getExecutablePath()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	path = PathChooser(path) + "/" + name
 
 	project.AddProject(projects, name, description, path)
 }

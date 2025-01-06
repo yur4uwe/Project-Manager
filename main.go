@@ -10,11 +10,13 @@ import (
 )
 
 const (
-	MAIN_MENU = iota
+	TERMINATE = iota - 2
+	MAIN_MENU
 	ADD_PROJECT
 	UPDATE_PROJECT
 	REMOVE_PROJECT
 	LIST_PROJECTS
+	EXIT_PROGRAM
 )
 
 func main() {
@@ -26,83 +28,34 @@ func main() {
 	defer keyboard.Close()
 
 	defer project.SaveProjects(&projects)
-
-	options := []string{
-		"Add Project",
-		"Update Project",
-		"Remove Project",
-		"List Projects",
-		"Exit",
-	}
-
-	selected := 0
-
-	var window_to_display int = MAIN_MENU
-
-	var buffer = display.MainMenu(projects, keyboard.KeyBackspace, selected)
-
-	fmt.Println(buffer)
-
 	for {
-		char, key, err := keyboard.GetKey()
-		if err != nil {
-			log.Fatal(err)
-		}
+		selected := display.MainMenu()
 
-		buffer = display.MainMenu(projects, key, selected)
-
-		if key == keyboard.KeyArrowDown && window_to_display == MAIN_MENU {
-			selected = (selected + 1) % len(options)
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyArrowUp && window_to_display == MAIN_MENU {
-			selected = (selected - 1 + len(options)) % len(options)
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyEnter {
-			switch selected {
-			case 0:
-				window_to_display = ADD_PROJECT
-			case 1:
-				window_to_display = UPDATE_PROJECT
-			case 2:
-				window_to_display = REMOVE_PROJECT
-			case 3:
-				window_to_display = LIST_PROJECTS
-			case 4:
-				fmt.Println("Exiting...")
-				return
-			}
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyEsc {
-			window_to_display = MAIN_MENU
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if char == 'q' || char == 'Q' {
+		switch selected {
+		case TERMINATE:
 			fmt.Println("Exiting...")
 			return
-		}
-
-		switch window_to_display {
-		case MAIN_MENU:
-			buffer = display.MainMenu(projects, key, selected)
 		case ADD_PROJECT:
+			fmt.Print("\033[H\033[2J") // Clear the screen
 			display.AddProject(&projects)
-			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case UPDATE_PROJECT:
+			fmt.Print("\033[H\033[2J") // Clear the screen
 			projects = display.UpdateProject(projects)
-			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case REMOVE_PROJECT:
+			fmt.Print("\033[H\033[2J") // Clear the screen
 			projects = display.RemoveProject(projects)
-			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		case LIST_PROJECTS:
-			display.ProjectsList(projects)
-			window_to_display = MAIN_MENU
 			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.ProjectsList(projects)
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		case EXIT_PROGRAM:
+			fmt.Println("Exiting...")
+			return
 		default:
-			buffer = display.MainMenu(projects, key, selected)
+			fmt.Print("\033[H\033[2J") // Clear the screen
 		}
-
-		fmt.Println(buffer)
 	}
 }

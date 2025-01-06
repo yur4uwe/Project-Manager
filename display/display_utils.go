@@ -5,68 +5,30 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	// "regexp"
+	"path/filepath"
 	"strings"
 
 	"github.com/eiannone/keyboard"
 	project "github.com/yur4uwe/cmd-project-manager/project_utils"
 )
 
+func getExecutablePath() (string, error) {
+	ex, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	dir, err := filepath.Abs(filepath.Dir(ex))
+
+	return strings.ReplaceAll(dir, "\\", "/"), err
+}
+
 func PrintCompressedProjectList(projects []project.Project) int {
 	var projects_slice = strings.Split(project.PrintCompressedProjectsSlice(projects), "\n")[:len(projects)]
 
-	var joined string
-	if len(projects_slice) == 0 {
-		joined = ""
-	} else {
-		joined = "\n  " + strings.Join(projects_slice, "\n  ")
-	}
+	defer fmt.Print("\033[H\033[2J") // Clear the screen
 
-	var display_string string = "Projects:  " + joined
-	var selected = 0
-
-	fmt.Println(display_string)
-
-	if len(projects_slice) == 0 {
-		fmt.Println("  No projects found.")
-	}
-
-	for {
-		display_string = "Projects:\n"
-
-		_, key, err := keyboard.GetKey()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if key == keyboard.KeyArrowDown && len(projects_slice) > 0 {
-			selected = (selected + 1) % len(projects_slice)
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyArrowUp && len(projects_slice) > 0 {
-			selected = (selected - 1 + len(projects_slice)) % len(projects_slice)
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		} else if key == keyboard.KeyEsc {
-			return -1
-		} else if key == keyboard.KeyEnter {
-			return selected
-		}
-
-		for i, compressed_project_info := range projects_slice {
-			if i == selected {
-				display_string += fmt.Sprintf("> %s <\n", compressed_project_info)
-			} else {
-				display_string += fmt.Sprintf("  %s\n", compressed_project_info)
-			}
-		}
-
-		if len(projects_slice) == 0 {
-			display_string = "Projects:\n" + "  No projects found."
-			fmt.Print("\033[H\033[2J") // Clear the screen
-		}
-
-		fmt.Println(display_string)
-	}
+	return ChoiceMenu(projects_slice, "Projects:\n", "  No projects found.")
 }
 
 func isValidPath(path string) bool {
@@ -120,4 +82,163 @@ func GetMostRecentPaths() []string {
 		return paths[:5]
 	}
 	return paths
+}
+
+func ChoiceMenu(options []string, header string, no_options string, termination_options ...string) int {
+	selected := 0
+
+	fmt.Print(header)
+	for i, option := range options {
+		if i == selected {
+			fmt.Printf("> %s <\n", option)
+		} else {
+			fmt.Printf("  %s\n", option)
+		}
+	}
+
+	if len(options) == 0 {
+		fmt.Println(no_options)
+	}
+
+	for {
+		display_string := header
+
+		char, key, err := keyboard.GetKey()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if key == keyboard.KeyArrowDown {
+			selected = (selected + 1) % len(options)
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyArrowUp {
+			selected = (selected - 1 + len(options)) % len(options)
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyEnter {
+			return selected
+		} else if key == keyboard.KeyEsc {
+			return -1
+		} else if strings.Contains(strings.Join(termination_options, ""), string(char)) {
+			return -2
+		} else {
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		}
+
+		for i, option := range options {
+			if i == selected {
+				display_string += fmt.Sprintf("> %s <\n", option)
+			} else {
+				display_string += fmt.Sprintf("  %s\n", option)
+			}
+		}
+
+		if len(options) == 0 {
+			display_string = header + no_options
+		}
+
+		fmt.Println(display_string)
+	}
+}
+
+func MatchFoldersInPath(valid_path string, name_to_match string) []string {
+	// List all folders in the given path
+	// Return a slice of strings with the folder names
+
+	var folders []string
+
+	// Open the directory
+	dir, err := os.ReadDir(valid_path)
+	if err != nil {
+		log.Println(err)
+		return folders
+	}
+
+	// Read the directory
+	for _, entry := range dir {
+		if entry.IsDir() && strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(name_to_match)) {
+			folders = append(folders, entry.Name())
+		}
+	}
+
+	if len(folders) == 0 {
+		folders = append(folders, "No folders found.")
+	} else if len(folders) > 5 {
+		folders = folders[:5]
+	}
+	return folders
+}
+
+func PathChooser(current_path string) string {
+	var recent_path_options = GetMostRecentPaths()
+
+	fmt.Println("Enter the absolute path to the project directory or choose already existing.")
+
+	var path_options = len(recent_path_options) + 1
+	var selected = -1
+	var path string = current_path
+
+	for {
+
+		if selected == 0 {
+			fmt.Println("> Use current directory <")
+		} else {
+			fmt.Println("  Use current directory")
+		}
+
+		for i, option := range recent_path_options {
+			if i == selected {
+				fmt.Printf("> %s <\n", option)
+			} else {
+				fmt.Printf("  %s\n", option)
+			}
+		}
+
+		fmt.Printf("Absolute Path: %s\n", path)
+
+		split_path := strings.Split(path, "/")
+
+		folders := MatchFoldersInPath(strings.Join(split_path[:len(split_path)-1], "/"), split_path[len(split_path)-1])
+
+		fmt.Println("\n  ", strings.Join(folders, "\n  "))
+
+		char, key, err := keyboard.GetKey()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if key == keyboard.KeyEnter {
+			if isValidPath(path) {
+				break
+			}
+			fmt.Print("\033[H\033[2J") // Clear the screen
+			fmt.Println("Invalid path. Please enter a valid filesystem path.")
+			path = ""
+		} else if key == keyboard.KeyEsc {
+			return ""
+		} else if key == keyboard.KeyBackspace {
+			if len(path) > 0 {
+				path = path[:len(path)-1]
+			}
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyArrowUp {
+			selected = (selected - 1 + path_options) % path_options
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyArrowDown {
+			selected = (selected + 1) % path_options
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else if key == keyboard.KeyTab {
+			if len(folders) != 1 {
+				continue
+			}
+			split_path = strings.Split(path, "/")
+			path = strings.Join(split_path[:len(split_path)-1], "/") + "/" + folders[0] + "/"
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		} else {
+			path += string(char)
+			fmt.Print("\033[H\033[2J") // Clear the screen
+		}
+	}
+
+	return path
 }
