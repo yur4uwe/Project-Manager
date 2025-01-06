@@ -23,7 +23,7 @@ func main() {
 	var projects []project.Project = project.ReadProjectsFromFile()
 
 	if err := keyboard.Open(); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error while opening the keyboard: ", err)
 	}
 	defer keyboard.Close()
 

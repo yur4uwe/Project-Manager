@@ -76,11 +76,15 @@ func AddProject(projects *[]Project, name, description, path string) Project {
 
 	*projects = append(*projects, new_project)
 
-	err := os.Mkdir(path, 0755)
+	info, err := os.Stat(path)
 
-	if err != nil {
-		log.Println(err)
-		return Project{}
+	if err != nil && !info.IsDir() {
+		err := os.Mkdir(path, 0755)
+
+		if err != nil {
+			log.Println("Error while creating folder for project: ", err)
+			return Project{}
+		}
 	}
 
 	cmd := exec.Command("git", "init")
@@ -88,7 +92,7 @@ func AddProject(projects *[]Project, name, description, path string) Project {
 	err = cmd.Run()
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while creating git repository", err)
 		return Project{}
 	}
 
@@ -136,7 +140,7 @@ func RemoveProject(projects []Project, id int) []Project {
 	err := os.RemoveAll(projects[id].Path)
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Failed to remove project folder", err)
 	}
 
 	for i := range projects {
@@ -182,7 +186,7 @@ func OpenProjectInExplorer(path string) {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while opening project in file explorer: ", err)
 	}
 }
 
@@ -193,6 +197,6 @@ func OpenProjectInVSCode(path string) {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while opening project in vs code: ", err)
 	}
 }

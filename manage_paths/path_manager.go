@@ -19,14 +19,14 @@ func ReadRecentPathsFromFile() []RecentPath {
 
 	file, err := os.ReadFile(".directory_history.json")
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while reading path history file: ", err)
 		return nil
 	}
 
 	var recent_paths []RecentPath
 	err = json.Unmarshal(file, &recent_paths)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while unmarshaling JSON file: ", err)
 		return nil
 	}
 
@@ -56,13 +56,13 @@ func SaveRecentPaths(recent_paths []RecentPath) {
 
 	recentPathsJSON, err := json.MarshalIndent(recent_paths, "", "  ")
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while marshaling JSON file: ", err)
 		return
 	}
 
 	err = os.WriteFile(".directory_history.json", recentPathsJSON, 0644)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while writing to JSON file: ", err)
 	}
 }
 

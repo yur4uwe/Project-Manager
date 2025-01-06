@@ -56,7 +56,7 @@ func ProjectsList(projects []project.Project) {
 	for {
 		_, key, err := keyboard.GetKey()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error while getting keyboard key: ", err)
 		}
 		if key == keyboard.KeyEnter || key == keyboard.KeyEsc {
 			break
@@ -79,7 +79,7 @@ func RemoveProject(projects []project.Project) []project.Project {
 	var char, key, err = keyboard.GetKey()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error while getting keyboard key: ", err)
 	}
 
 	if key == keyboard.KeyEnter || char == 'y' || char == 'Y' {
@@ -139,7 +139,7 @@ func AddProject(projects *[]project.Project) {
 
 	path, err := getExecutablePath()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error while getting executable path", err)
 	}
 
 	path = PathChooser(path)

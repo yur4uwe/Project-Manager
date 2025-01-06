@@ -15,6 +15,7 @@ import (
 func getExecutablePath() (string, error) {
 	ex, err := os.Executable()
 	if err != nil {
+		log.Println("Error while getting executable path: ", err)
 		return "", err
 	}
 
@@ -65,7 +66,7 @@ func GetMostRecentPaths() []string {
 	// Read the file
 	file, err := os.ReadFile(".directory_history.json")
 	if err != nil {
-		log.Println(err)
+		log.Println("GetMostRecentPaths: Error while reading path history file:", err)
 		return []string{}
 	}
 
@@ -73,7 +74,7 @@ func GetMostRecentPaths() []string {
 	var paths []string
 	err = json.Unmarshal(file, &paths)
 	if err != nil {
-		log.Println(err)
+		log.Println("GetMostRecentPaths: Error while unmarshaling JSON file", err)
 		return []string{}
 	}
 
@@ -118,7 +119,7 @@ func ChoiceMenu(options []string, header string, no_options string, termination_
 
 		char, key, err := keyboard.GetKey()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error while getting keyboard key: ", err)
 		}
 
 		if key == keyboard.KeyArrowDown {
@@ -162,7 +163,7 @@ func MatchFoldersInPath(valid_path string, name_to_match string) []string {
 	// Open the directory
 	dir, err := os.ReadDir(valid_path)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while reading directory to match folders: ", err)
 		return folders
 	}
 
@@ -212,12 +213,12 @@ func PathChooser(current_path string) string {
 
 		folders := MatchFoldersInPath(strings.Join(split_path[:len(split_path)-1], "/"), split_path[len(split_path)-1])
 
-		fmt.Println("\n  ", strings.Join(folders, "\n  "))
+		fmt.Println("  ", strings.Join(folders, "\n  "))
 
 		char, key, err := keyboard.GetKey()
 
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error getting keyboard key: ", err)
 		}
 
 		if key == keyboard.KeyEnter {
