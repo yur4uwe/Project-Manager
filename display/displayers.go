@@ -36,6 +36,20 @@ func ProjectsList(projects []project.Project) {
 
 	fmt.Println(project.PrintProjectInfo(projects[selected]))
 
+	header := project.PrintProjectInfo(projects[selected]) + "\nProject Options\n"
+	options := []string{"Open in VS Code", "Open in File Explorer", "Back"}
+
+	do_next := ChoiceMenu(options, header, "", "B", "b")
+
+	switch do_next {
+	case -1, -2, 2:
+		return
+	case 0:
+		project.OpenProjectInVSCode(projects[selected].Path)
+	case 1:
+		project.OpenProjectInExplorer(projects[selected].Path)
+	}
+
 	fmt.Println("Press Enter to continue...")
 	for {
 		_, key, err := keyboard.GetKey()
@@ -126,7 +140,9 @@ func AddProject(projects *[]project.Project) {
 		log.Fatal(err)
 	}
 
-	path = PathChooser(path) + "/" + name
+	path = PathChooser(path)
 
-	project.AddProject(projects, name, description, path)
+	if path != "" {
+		project.AddProject(projects, name, description, path+"/"+name)
+	}
 }

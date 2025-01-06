@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -62,6 +63,22 @@ func AddProject(projects *[]Project, name, description, path string) Project {
 	}
 
 	*projects = append(*projects, new_project)
+
+	err := os.Mkdir(path, 0755)
+
+	if err != nil {
+		log.Println(err)
+		return Project{}
+	}
+
+	cmd := exec.Command("git", "init")
+	cmd.Dir = path
+	err = cmd.Run()
+
+	if err != nil {
+		log.Println(err)
+		return Project{}
+	}
 
 	SaveProjects(projects)
 
@@ -134,4 +151,26 @@ func UpdateProject(projects []Project, id int, name, description, path string) [
 	}
 
 	return projects
+}
+
+func OpenProjectInExplorer(path string) {
+	fmt.Println("Open Project In Explorer")
+
+	cmd := exec.Command("explorer", path)
+	err := cmd.Run()
+
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func OpenProjectInVSCode(path string) {
+	fmt.Println("Open Project In VSCode")
+
+	cmd := exec.Command("code", path)
+	err := cmd.Run()
+
+	if err != nil {
+		log.Println(err)
+	}
 }

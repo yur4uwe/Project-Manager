@@ -32,7 +32,7 @@ func main() {
 		selected := display.MainMenu()
 
 		switch selected {
-		case TERMINATE:
+		case TERMINATE, EXIT_PROGRAM:
 			fmt.Println("Exiting...")
 			return
 		case ADD_PROJECT:
@@ -51,9 +51,6 @@ func main() {
 			fmt.Print("\033[H\033[2J") // Clear the screen
 			display.ProjectsList(projects)
 			fmt.Print("\033[H\033[2J") // Clear the screen
-		case EXIT_PROGRAM:
-			fmt.Println("Exiting...")
-			return
 		default:
 			fmt.Print("\033[H\033[2J") // Clear the screen
 		}

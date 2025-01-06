@@ -84,6 +84,19 @@ func GetMostRecentPaths() []string {
 	return paths
 }
 
+/*
+ChoiceMenu displays a menu with the given options and returns the index of the selected option.
+
+Returns:
+
+index of the selected option if the user presses the Enter key.
+
+0 is the default option if the user presses the Enter key without selecting an option
+
+-1 if the user presses the ESC key.
+
+-2 if the user presses a key from the termination_options slice.
+*/
 func ChoiceMenu(options []string, header string, no_options string, termination_options ...string) int {
 	selected := 0
 
