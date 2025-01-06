@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/eiannone/keyboard"
+	path_manager "github.com/yur4uwe/cmd-project-manager/manage_paths"
 	project "github.com/yur4uwe/cmd-project-manager/project_utils"
 )
 
@@ -45,6 +46,7 @@ func ProjectsList(projects []project.Project) {
 	case -1, -2, 2:
 		return
 	case 0:
+		path_manager.IncrementAccess(projects[selected].Path)
 		project.OpenProjectInVSCode(projects[selected].Path)
 	case 1:
 		project.OpenProjectInExplorer(projects[selected].Path)
@@ -143,6 +145,6 @@ func AddProject(projects *[]project.Project) {
 	path = PathChooser(path)
 
 	if path != "" {
-		project.AddProject(projects, name, description, path+"/"+name)
+		project.AddProject(projects, name, description, path)
 	}
 }

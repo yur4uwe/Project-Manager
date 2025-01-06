@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	path_manager "github.com/yur4uwe/cmd-project-manager/manage_paths"
 )
 
 type Project struct {
@@ -54,6 +56,12 @@ func SaveProjects(projects *[]Project) {
 func AddProject(projects *[]Project, name, description, path string) Project {
 	fmt.Println("Add Project")
 
+	if path[len(path)-1] != '/' {
+		path += "/"
+	}
+
+	path = path + name
+
 	new_project := Project{
 		Name:        name,
 		Description: description,
@@ -79,6 +87,8 @@ func AddProject(projects *[]Project, name, description, path string) Project {
 		log.Println(err)
 		return Project{}
 	}
+
+	path_manager.AddRecentPath(path)
 
 	SaveProjects(projects)
 
