@@ -19,6 +19,10 @@ const (
 	EXIT_PROGRAM
 )
 
+// TODO: Add a way to open the project in the file explorer
+// TODO: check if git repository exists before adding it
+// TODO: Add a way to link the project to a existing folder (there is error at the moment)
+
 func main() {
 	var projects []project.Project = project.ReadProjectsFromFile()
 
