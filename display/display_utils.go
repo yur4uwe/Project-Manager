@@ -168,7 +168,7 @@ func MatchFoldersInPath(valid_path string, name_to_match string) []string {
 
 	// Read the directory
 	for _, entry := range dir {
-		if entry.IsDir() && strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(name_to_match)) {
+		if entry.IsDir() && strings.Contains(strings.ToLower(entry.Name()), strings.ToLower(name_to_match)) && !strings.HasPrefix(entry.Name(), ".") {
 			folders = append(folders, entry.Name())
 		}
 	}

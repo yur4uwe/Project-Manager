@@ -41,6 +41,10 @@ func ReadProjectsFromFile() []Project {
 func SaveProjects(projects *[]Project) {
 	fmt.Println("Save Projects")
 
+	for i := range *projects {
+		(*projects)[i].ID = i
+	}
+
 	projectsJSON, err := json.MarshalIndent(projects, "", "  ")
 	if err != nil {
 		log.Println(err)
@@ -129,13 +133,21 @@ func PrintProjectInfo(project Project) string {
 func RemoveProject(projects []Project, id int) []Project {
 	fmt.Println("Remove Project From Slice By ID")
 
-	for i, project := range projects {
-		if project.ID == id {
+	err := os.RemoveAll(projects[id].Path)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	for i := range projects {
+		if projects[i].ID == id {
 			projects = append(projects[:i], projects[i+1:]...)
 			break
-		} else if project.ID > id {
-			projects[i].ID--
 		}
+	}
+
+	for i := range projects {
+		projects[i].ID = i
 	}
 
 	return projects
