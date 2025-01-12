@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/eiannone/keyboard"
 	display "github.com/yur4uwe/cmd-project-manager/display"
@@ -19,19 +20,30 @@ const (
 	EXIT_PROGRAM
 )
 
-// TODO: Add a way to open the project in the file explorer
+// TODO: Add a way to open the project directory
 // TODO: check if git repository exists before adding it
 // TODO: Add a way to link the project to a existing folder (there is error at the moment)
 
 func main() {
+	log_file, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer log_file.Close()
+
+	log.SetOutput(log_file)
+
+	log.Println("Program start\n+-------------------+")
+
 	var projects []project.Project = project.ReadProjectsFromFile()
 
 	if err := keyboard.Open(); err != nil {
 		log.Fatal("Error while opening the keyboard: ", err)
 	}
-	defer keyboard.Close()
 
+	defer keyboard.Close()
 	defer project.SaveProjects(&projects)
+
 	for {
 		selected := display.MainMenu()
 
@@ -40,23 +52,23 @@ func main() {
 			fmt.Println("Exiting...")
 			return
 		case ADD_PROJECT:
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 			display.AddProject(&projects)
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 		case UPDATE_PROJECT:
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 			projects = display.UpdateProject(projects)
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 		case REMOVE_PROJECT:
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 			projects = display.RemoveProject(projects)
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 		case LIST_PROJECTS:
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 			display.ProjectsList(projects)
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 		default:
-			fmt.Print("\033[H\033[2J") // Clear the screen
+			display.Clear()
 		}
 	}
 }

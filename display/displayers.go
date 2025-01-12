@@ -35,7 +35,7 @@ func ProjectsList(projects []project.Project) {
 		return
 	}
 
-	fmt.Println(project.PrintProjectInfo(projects[selected]))
+	Clear()
 
 	header := project.PrintProjectInfo(projects[selected]) + "\nProject Options\n"
 	options := []string{"Open in VS Code", "Open in File Explorer", "Back"}
@@ -72,9 +72,12 @@ func RemoveProject(projects []project.Project) []project.Project {
 		return projects
 	}
 
-	fmt.Println(project.PrintProjectInfo(projects[selected]))
+	buffer := project.PrintProjectInfo(projects[selected]) +
+		"\nAre you sure you want to remove this project? (y/n)\n" +
+		"\n**This action only deletes link to a project" +
+		"\nand not the directory with it**"
 
-	fmt.Println("Are you sure you want to remove this project? (y/n)")
+	fmt.Println(buffer)
 
 	var char, key, err = keyboard.GetKey()
 
@@ -125,16 +128,20 @@ func UpdateProject(projects []project.Project) []project.Project {
 
 // (void) Mutates the projects slice
 func AddProject(projects *[]project.Project) {
-	reader := bufio.NewReader(os.Stdin)
+	header := "Add Project\n"
 
-	fmt.Println("Add Project")
-
-	fmt.Print("Name: ")
-	name, _ := reader.ReadString('\n')
+	header += "Name: "
+	name, err := readInputWithCancel(header, keyboard.KeyEsc)
+	if err != nil {
+		return
+	}
 	name = strings.TrimSpace(name)
 
-	fmt.Print("Description: ")
-	description, _ := reader.ReadString('\n')
+	header += name + "\nDescription: "
+	description, err := readInputWithCancel(header, keyboard.KeyEsc)
+	if err != nil {
+		return
+	}
 	description = strings.TrimSpace(description)
 
 	path, err := getExecutablePath()
@@ -142,7 +149,7 @@ func AddProject(projects *[]project.Project) {
 		log.Fatal("Error while getting executable path", err)
 	}
 
-	path = PathChooser(path)
+	path = PathChooser(header, path)
 
 	if path != "" {
 		project.AddProject(projects, name, description, path)

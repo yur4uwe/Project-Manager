@@ -20,7 +20,7 @@ type Project struct {
 }
 
 func ReadProjectsFromFile() []Project {
-	fmt.Println("Read Projects From File")
+	log.Println("Read Projects From File")
 
 	file, err := os.ReadFile(".projects.json")
 	if err != nil {
@@ -39,7 +39,7 @@ func ReadProjectsFromFile() []Project {
 }
 
 func SaveProjects(projects *[]Project) {
-	fmt.Println("Save Projects")
+	log.Println("Save Projects\n+-------------------+")
 
 	for i := range *projects {
 		(*projects)[i].ID = i
@@ -58,7 +58,7 @@ func SaveProjects(projects *[]Project) {
 }
 
 func AddProject(projects *[]Project, name, description, path string) Project {
-	fmt.Println("Add Project")
+	log.Println("Add Project")
 
 	if path[len(path)-1] != '/' {
 		path += "/"
@@ -76,23 +76,34 @@ func AddProject(projects *[]Project, name, description, path string) Project {
 
 	*projects = append(*projects, new_project)
 
-	info, err := os.Stat(path)
-
-	if err != nil && !info.IsDir() {
-		err := os.Mkdir(path, 0755)
-
+	if info, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.Mkdir(path, 0755)
 		if err != nil {
-			log.Println("Error while creating folder for project: ", err)
+			log.Println("Error while creating project directory: ", err)
 			return Project{}
 		}
+	} else if err != nil {
+		log.Println("Error while checking if project directory exists: ", err)
+		return Project{}
+	} else if !info.IsDir() {
+		log.Println("Error: selected path exists but is not a directory")
+		return Project{}
 	}
 
-	cmd := exec.Command("git", "init")
-	cmd.Dir = path
-	err = cmd.Run()
+	if info, err := os.Stat(path + "/.git"); os.IsNotExist(err) {
+		cmd := exec.Command("git", "init")
+		cmd.Dir = path
+		err = cmd.Run()
 
-	if err != nil {
-		log.Println("Error while creating git repository", err)
+		if err != nil {
+			log.Println("Error while initializing git repository")
+			return Project{}
+		}
+	} else if err != nil {
+		log.Println("Error while checking if .git directory exists: ", err)
+		return Project{}
+	} else if !info.IsDir() {
+		log.Println("WTF?!!!??! WHY IS .git NOT A DIRECTORY???!?!?!?")
 		return Project{}
 	}
 
@@ -135,7 +146,7 @@ func PrintProjectInfo(project Project) string {
 }
 
 func RemoveProject(projects []Project, id int) []Project {
-	fmt.Println("Remove Project From Slice By ID")
+	log.Println("Remove Project From Slice By ID")
 
 	err := os.RemoveAll(projects[id].Path)
 
@@ -154,11 +165,13 @@ func RemoveProject(projects []Project, id int) []Project {
 		projects[i].ID = i
 	}
 
+	path_manager.RemovePath(projects[id].Path)
+
 	return projects
 }
 
 func UpdateProject(projects []Project, id int, name, description, path string) []Project {
-	fmt.Println("Update Project By ID")
+	log.Println("Update Project By ID")
 
 	for i, project := range projects {
 		if project.ID == id {
@@ -180,7 +193,7 @@ func UpdateProject(projects []Project, id int, name, description, path string) [
 }
 
 func OpenProjectInExplorer(path string) {
-	fmt.Println("Open Project In Explorer")
+	log.Println("Open Project In Explorer")
 
 	cmd := exec.Command("explorer", path)
 	err := cmd.Run()
@@ -191,7 +204,7 @@ func OpenProjectInExplorer(path string) {
 }
 
 func OpenProjectInVSCode(path string) {
-	fmt.Println("Open Project In VSCode")
+	log.Println("Open Project In VSCode")
 
 	cmd := exec.Command("code", path)
 	err := cmd.Run()

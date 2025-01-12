@@ -14,29 +14,33 @@ type RecentPath struct {
 	TimesOpened int    `json:"TimesOpened"`
 }
 
-func ReadRecentPathsFromFile() []RecentPath {
+func ReadRecentPathsFromFile() ([]RecentPath, error) {
 	fmt.Println("Read Recent Paths From File")
 
 	file, err := os.ReadFile(".directory_history.json")
 	if err != nil {
 		log.Println("Error while reading path history file: ", err)
-		return nil
+		return nil, fmt.Errorf("os: path history file doesn't exist:\n %w", err)
 	}
 
 	var recent_paths []RecentPath
 	err = json.Unmarshal(file, &recent_paths)
 	if err != nil {
-		log.Println("Error while unmarshaling JSON file: ", err)
-		return nil
+		log.Printf("Error while unmarshaling JSON file: %v\nJSON data: %s\n", err, string(file))
+		return nil, fmt.Errorf("json: failed to unmarshal json file:\n %w", err)
 	}
 
-	return recent_paths
+	return recent_paths, nil
 }
 
 func AddRecentPath(path string) {
 	fmt.Println("Add Recent Path")
 
-	var recent_paths []RecentPath = ReadRecentPathsFromFile()
+	recent_paths, err := ReadRecentPathsFromFile()
+	if err != nil {
+		log.Println("read path history: failed to read path history\n", err)
+		return
+	}
 
 	var new_path = RecentPath{
 		Path:        path,
@@ -92,7 +96,11 @@ func RemoveDuplicatePaths(recent_paths []RecentPath) []RecentPath {
 func IncrementAccess(path string) {
 	fmt.Println("Increment Access")
 
-	var recent_paths []RecentPath = ReadRecentPathsFromFile()
+	recent_paths, err := ReadRecentPathsFromFile()
+	if err != nil {
+		log.Println("read path history: failed to read path history\n", err)
+		return
+	}
 
 	for i, recent_path := range recent_paths {
 		if recent_path.Path == path {
@@ -108,7 +116,11 @@ func IncrementAccess(path string) {
 func GetMostRecentPaths() []string {
 	fmt.Println("Get Most Recent Paths")
 
-	var recent_paths []RecentPath = ReadRecentPathsFromFile()
+	recent_paths, err := ReadRecentPathsFromFile()
+	if err != nil {
+		log.Println("read path history: failed to read path history\n", err)
+		return nil
+	}
 
 	// Sort the recent paths by the last access time
 	for i := 0; i < len(recent_paths); i++ {
@@ -131,4 +143,17 @@ func GetMostRecentPaths() []string {
 	}
 
 	return recent_paths_strings
+}
+
+func RemovePath(path string) []string {
+
+	recent_paths := GetMostRecentPaths()
+
+	for i := 0; i < len(recent_paths); i++ {
+		if recent_paths[i] == path {
+			recent_paths = append(recent_paths[:i], recent_paths[i+1:]...)
+		}
+	}
+
+	return recent_paths
 }

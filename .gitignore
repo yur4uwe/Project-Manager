@@ -29,3 +29,6 @@ go.sum
 
 # Ignore json files with project information
 *.json
+
+# Ignore txt log file
+*.txt
