@@ -20,18 +20,20 @@ const (
 	EXIT_PROGRAM
 )
 
-// TODO: Add a way to open the project directory
-// TODO: check if git repository exists before adding it
 // TODO: Add a way to link the project to a existing folder (there is error at the moment)
+// TODO: Implement a check for duplicate names
 
 func main() {
-	log_file, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logFilePath := "log.txt"
+
+	// Open the file with the os.O_TRUNC flag to clear its contents and set it for logging
+	logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
-	defer log_file.Close()
+	defer logFile.Close()
 
-	log.SetOutput(log_file)
+	log.SetOutput(logFile)
 
 	log.Println("Program start\n+-------------------+")
 
@@ -44,13 +46,16 @@ func main() {
 	defer keyboard.Close()
 	defer project.SaveProjects(&projects)
 
+	display.Clear()
+
+outerLoop:
 	for {
 		selected := display.MainMenu()
 
 		switch selected {
 		case TERMINATE, EXIT_PROGRAM:
 			fmt.Println("Exiting...")
-			return
+			break outerLoop
 		case ADD_PROJECT:
 			display.Clear()
 			display.AddProject(&projects)

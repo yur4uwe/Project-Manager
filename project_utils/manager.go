@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/atotto/clipboard"
 	path_manager "github.com/yur4uwe/cmd-project-manager/manage_paths"
 )
 
@@ -195,11 +196,11 @@ func UpdateProject(projects []Project, id int, name, description, path string) [
 func OpenProjectInExplorer(path string) {
 	log.Println("Open Project In Explorer")
 
-	cmd := exec.Command("explorer", path)
+	cmd := exec.Command("start", path)
 	err := cmd.Run()
 
 	if err != nil {
-		log.Println("Error while opening project in file explorer: ", err)
+		log.Fatal("Error while opening project in file explorer: ", err)
 	}
 }
 
@@ -210,6 +211,15 @@ func OpenProjectInVSCode(path string) {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Println("Error while opening project in vs code: ", err)
+		log.Fatal("Error while opening project in vs code: ", err)
 	}
+}
+
+func CopyProjectPath(path string) {
+	err := clipboard.WriteAll(path)
+	if err != nil {
+		log.Printf("Failed to write to clipboard: %v\n", err)
+		panic(err)
+	}
+	log.Println("Successfully copied to clipboard!")
 }

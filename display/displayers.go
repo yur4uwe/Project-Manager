@@ -38,18 +38,20 @@ func ProjectsList(projects []project.Project) {
 	Clear()
 
 	header := project.PrintProjectInfo(projects[selected]) + "\nProject Options\n"
-	options := []string{"Open in VS Code", "Open in File Explorer", "Back"}
+	options := []string{"Open in VS Code", "Open in File Explorer", "Copy Path to Projects Directory", "Back"}
 
 	do_next := ChoiceMenu(options, header, "", "B", "b")
 
 	switch do_next {
-	case -1, -2, 2:
+	case -1, -2, 3:
 		return
 	case 0:
 		path_manager.IncrementAccess(projects[selected].Path)
 		project.OpenProjectInVSCode(projects[selected].Path)
 	case 1:
 		project.OpenProjectInExplorer(projects[selected].Path)
+	case 2:
+		project.CopyProjectPath(projects[selected].Path)
 	}
 
 	fmt.Println("Press Enter to continue...")
