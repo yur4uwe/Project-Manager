@@ -88,6 +88,7 @@ func RemoveProject(projects []project.Project) []project.Project {
 	}
 
 	if key == keyboard.KeyEnter || char == 'y' || char == 'Y' {
+		path_manager.RemovePath(projects[selected].Path)
 		projects = append(projects[:selected], projects[selected+1:]...)
 		return projects
 	}
@@ -128,23 +129,32 @@ func UpdateProject(projects []project.Project) []project.Project {
 	return projects
 }
 
-// (void) Mutates the projects slice
-func AddProject(projects *[]project.Project) {
-	header := "Add Project\n"
+func CreateNewProject(projects *[]project.Project) {
+	header := "Create Project\n"
 
 	header += "Name: "
-	name, err := readInputWithCancel(header, keyboard.KeyEsc)
-	if err != nil {
-		return
-	}
-	name = strings.TrimSpace(name)
+	var name string
+	var err error
+	for {
+		name, err = readInputWithCancel(header, keyboard.KeyEsc)
+		if err != nil {
+			return
+		}
+		name = strings.TrimSpace(name)
+		if project.CheckDuplicateNames(projects, name) {
 
-	header += name + "\nDescription: "
+			break
+		}
+		header = "Invalid name\nAdd Project\nName: "
+	}
+
+	header = "Create Project\nName: " + name + "\nDescription: "
 	description, err := readInputWithCancel(header, keyboard.KeyEsc)
 	if err != nil {
 		return
 	}
 	description = strings.TrimSpace(description)
+	header += description + "\n"
 
 	path, err := getExecutablePath()
 	if err != nil {
@@ -156,4 +166,30 @@ func AddProject(projects *[]project.Project) {
 	if path != "" {
 		project.AddProject(projects, name, description, path)
 	}
+}
+
+func LinkProject(projects *[]project.Project) {
+	header := "Navigate to the project directory"
+
+	path, err := getExecutablePath()
+	if err != nil {
+		log.Fatal("Error while getting executable path", err)
+		path = "~/"
+	}
+
+	path = PathChooser(header, path)
+
+	if path == "" {
+		return
+	}
+
+	name := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
+
+	header = fmt.Sprintf("Linking project\nName: %v", name)
+	description, err := readInputWithCancel(header)
+	if err != nil {
+		return
+	}
+
+	project.AddProject(projects, name, description, path)
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -18,6 +19,19 @@ type Project struct {
 	Description string `json:"Description"`
 	Path        string `json:"Path"`
 	TimeStamp   string `json:"TimeStamp"`
+}
+
+func CheckDuplicateNames(projects *[]Project, name string) bool {
+	new_name := strings.ToLower(name)
+
+	for i := 0; i < len(*projects); i++ {
+		existing_name := strings.ToLower((*projects)[i].Name)
+		if new_name == existing_name {
+			return false
+		}
+	}
+
+	return true
 }
 
 func ReadProjectsFromFile() []Project {

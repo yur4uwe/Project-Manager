@@ -20,8 +20,8 @@ const (
 	EXIT_PROGRAM
 )
 
-// TODO: Add a way to link the project to a existing folder (there is error at the moment)
-// TODO: Implement a check for duplicate names
+// TODO: something is wrong again with opening folder in explorer
+// TODO: Clear() issues
 
 func main() {
 	logFilePath := "log.txt"
@@ -58,7 +58,7 @@ outerLoop:
 			break outerLoop
 		case ADD_PROJECT:
 			display.Clear()
-			display.AddProject(&projects)
+			display.AddProjectInterface(&projects)
 			display.Clear()
 		case UPDATE_PROJECT:
 			display.Clear()
